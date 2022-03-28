@@ -29,7 +29,4 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: |
-            id77/wechatpchook:latest
-            id77/wechatpchook:${{ steps.get_version_tag.outputs.VERSION }}
-
+          tags: id77/wechathook:latest
