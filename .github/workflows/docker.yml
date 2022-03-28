@@ -1,67 +1,35 @@
-name: CI to Docker Hub
+name: ci
 
 on:
+  repository_dispatch:
+    types: [build]
   push:
     branches:
-      - master
-    paths:
-      - 'Bin/**'
-      - 'ServerPhp/**'
-      - 'Web/**'
-      - 'wine/**'
-      - 'Dockerfile'
-      - '*.py'
+      - 'master'
+  workflow_dispatch:
 
 jobs:
-  build:
+  docker:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
-
       - name: Set up Docker Buildx
-        id: buildx
         uses: docker/setup-buildx-action@v1
-
-      - name: Cache Docker layers
-        uses: actions/cache@v2
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
         with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-
-      - uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_TOKEN }}
-
-      - name: Get Version Tag
-        id: get_version_tag
-        run: echo ::set-output name=VERSION::`cat VERSION`
-
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build and push
-        id: docker_build
         uses: docker/build-push-action@v2
         with:
-          context: ./
-          file: ./Dockerfile
-          platforms: linux/arm64,linux/amd64
-          builder: ${{ steps.buildx.outputs.name }}
+          context: .
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ${{ secrets.DOCKER_HUB_USERNAME }}/wechatpchook:latest
             ${{ secrets.DOCKER_HUB_USERNAME }}/wechatpchook:${{ steps.get_version_tag.outputs.VERSION }}
-          labels: |
-            maintainer=${{ github.event.head_commit.author.email }}
-            timestamp=${{ github.event.head_commit.timestamp }}
-            message=${{ github.event.head_commit.message }}
-            commit=${{ github.event.head_commit.url }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
 
-      - name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
