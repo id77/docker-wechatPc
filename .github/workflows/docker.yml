@@ -30,6 +30,6 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ${{ secrets.DOCKER_HUB_USERNAME }}/wechatpchook:latest
-            ${{ secrets.DOCKER_HUB_USERNAME }}/wechatpchook:${{ steps.get_version_tag.outputs.VERSION }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/wechatpchook:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/wechatpchook:${{ steps.get_version_tag.outputs.VERSION }}
 
